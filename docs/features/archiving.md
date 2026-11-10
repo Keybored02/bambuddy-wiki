@@ -100,10 +100,18 @@ Bambuddy automatically detects duplicate prints:
 
 ### How It Works
 
-1. Extracts file hash from 3MF
-2. Compares with existing archives
-3. Marks potential duplicates
+1. Takes the hash of the archived file, and of its G-code on its own
+2. Compares both with existing archives
+3. Marks archives as duplicates when either matches
 4. You decide what to keep
+
+The G-code hash catches the same slice sent again: the slicer writes a new
+3MF around the same G-code each time (other timestamps and metadata), so the
+two files differ while the print is the same
+([#1634](https://github.com/maziggy/bambuddy/issues/1634)). A file sliced
+again with other settings has other G-code and stays separate. Nothing is
+matched by name. Archives made before this are read in the background after
+the update.
 
 ### Duplicate Indicators
 
@@ -130,7 +138,7 @@ Prints started from the slicer or on the printer, and uploaded files, still get 
 
 Archives created before this, or by the slicer and printer screen, can still hold the same file more than once. **Merge duplicates** in the Archives page header (also offered in the **Duplicates** collection) makes them one.
 
-Archives are one when they hold the same file (same content), belong to the same user and are in the same project. In each group:
+Archives are one when they hold the same file (same content), belong to the same user and are in the same project. Archives that are duplicates only because their G-code matches are not merged: merging keeps one file and drops the others, which is safe only for identical files. In each group:
 
 - The **oldest** archive stays. It takes in every print of the others as runs of its Print Log, with their photos, timelapses, source 3MF and F3D files, queue history, batches, project BOM entries and spool usage. A print logged before Print Logs existed gets a run written from its archive, so it is not lost.
 - Notes are joined, tags combined, and the archive stays a favourite if any of them was one.
@@ -178,7 +186,7 @@ Each archive displays as a card with key information:
 - **Tags** - Custom labels
 - **Project** - Assigned project badge
 - **Uploaded by** - Username who uploaded (when authentication is enabled)
-- **N prints badge** - Orange badge shown when this archive has been printed more than once. Click it to open the [archive window](#the-archive-window) with every print of it.
+- **N prints badge** - How many times this archive has been printed, from the first print: green when a print of it succeeded, red when its prints only failed, orange otherwise. The tooltip adds the counts and when it was last printed. Click it to open the [archive window](#the-archive-window) with every print of it.
 - **AMS mapping saved badge** - Green badge shown when the archive carries the AMS slots the slicer itself picked, saved by a virtual printer with [Save AMS mapping](virtual-printer.md#print-queue-mode-save-ams-mapping) on. It names the printer the slots were resolved against, because tray numbers only mean something on that printer — see [Reuse the slicer's saved mapping](#reuse-the-slicers-saved-mapping) below.
 
 Click a card (or the name in the list view) to open the [archive window](#the-archive-window). The buttons and badges on a card still do what they say, and the right-click menu is unchanged.
